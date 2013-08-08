@@ -57,8 +57,17 @@ EOF
   config:set)
     IFS="="
     read key value <<< $1
-    cmd="mkdir -p $DP_BASE_DIR/.envdir && echo \"$value\" > $DP_BASE_DIR/.envdir/$key";
+    cmd="mkdir -p $DP_BASE_DIR/.envdir && echo \"$value\" > $DP_BASE_DIR/.envdir/$key"
     runssh "$cmd"
+    ;;
+  config:setbulk)
+    cmd="mkdir -p $DP_BASE_DIR/.envdir"
+    IFS="="
+    while read key value
+    do
+      cmd="$cmd; echo \"$value\" > $DP_BASE_DIR/.envdir/$key"
+    done
+    echo $cmd
     ;;
   config:unset) runssh "rm -f $DP_BASE_DIR/.envdir/$1"
     ;;
