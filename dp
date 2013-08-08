@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+
+set -e
+
+function runssh() {
+  [[ $# -gt 0 ]] && local cmdssh="$1"
+  ssh -p $DP_PORT $DP_SSH_ARGS $DP_USER@$DP_HOST $cmdssh
+}
+
+# Default settings
+DP_PORT=22
+DP_BASE_DIR="\$HOME/app"
+DP_USER=$USER
+
+if [[ -e '.dp/config' ]]
+then
+  . .dp/config
+else
+  echo "No .dp directory found"
+  exit 1
+fi
+
+if [[ $# -eq 0 ]]
+then
+  command="push"
+else
+  command=$1
+  shift
+fi
+
+envs="cd $DP_BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
+
+case "$command" in
+  init-server)
+    cmd=$(cat <<EOF
+mkdir -p $DP_BASE_DIR/versions
+mkdir -p $DP_BASE_DIR/.envdir
+touch $DP_BASE_DIR/log
+cat <<EF > $DP_BASE_DIR/run
+#!/usr/bin/env bash
+cd \\\`dirname \\\$0\\\`/versions/current
+IFS="[: ]"
+read name cmd < Procfile
+echo "Starting \\\$name..."
+exec envdir ../../.envdir \\\$cmd
+EF
+chmod +x $DP_BASE_DIR/run
+EOF
+)
+    runssh "$cmd"
+    ;;
+  config) runssh "$envs"
+    ;;
+  config:get)
+    runssh "echo -n \"$1=\"; cat $DP_BASE_DIR/.envdir/$1"
+    ;;
+  config:set)
+    IFS="="
+    read key value <<< $1
+    cmd="mkdir -p $DP_BASE_DIR/.envdir && echo \"$value\" > $DP_BASE_DIR/.envdir/$key";
+    runssh "$cmd"
+    ;;
+  config:unset) runssh "rm -f $DP_BASE_DIR/.envdir/$1"
+    ;;
+  run) echo "$*" | runssh "cd $DP_BASE_DIR/versions/current && envdir ../../.envdir bash"
+    ;;
+  logs)
+    args="-n 100 $*"
+    runssh "tail $args $DP_BASE_DIR/log"
+    ;;
+  status) runssh "cd $DP_BASE_DIR && svstat ."
+    ;;
+  stop)
+    echo "Stopping app..."
+    runssh "svc -d $DP_BASE_DIR"
+    ;;
+  start)
+    echo "Starting app..."
+    cmd=$(cat <<EOF
+svok $DP_BASE_DIR
+if [[ \$? -gt 0 ]]
+then
+  start-stop-daemon --no-close --background -m --pidfile $DP_BASE_DIR/pid --start --startas \`which supervise\` -- $DP_BASE_DIR &>> $DP_BASE_DIR/log
+else
+  svc -u $DP_BASE_DIR
+fi
+EOF
+)
+    echo "$cmd" | runssh "bash"
+    runssh "$cmd"
+    ;;
+  restart)
+    echo "Restarting app..."
+    runssh "svc -d $DP_BASE_DIR && svc -u $DP_BASE_DIR"
+    ;;
+  deploy)
+
+    [[ $# -gt 0 ]] && branch=$1 || branch=master
+    githash=`git show-ref -s refs/heads/$branch`
+    cmds=$(cat <<EOF 
+set -e
+cat - > /tmp/app.tar
+export DIST_DIR=$DP_BASE_DIR/versions/\`date -u +%Y%m%d%H%M\`
+mkdir -p \$DIST_DIR
+tar xf /tmp/app.tar -C \$DIST_DIR
+cd \$DIST_DIR
+
+`cat .dp/compile`
+
+echo $githash > \$DIST_DIR/.gitversion
+rm -f \$DIST_DIR/../current
+ln -s \$DIST_DIR \$DIST_DIR/../current
+EOF
+)
+    git archive $branch | runssh "$cmds"
+    ;;
+esac
+
