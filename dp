@@ -3,8 +3,7 @@
 set -e
 
 function runssh() {
-  [[ $# -gt 0 ]] && local cmdssh="$1"
-  ssh -p $DP_PORT $DP_SSH_ARGS $DP_USER@$DP_HOST $cmdssh
+  ssh -p $DP_PORT $DP_SSH_ARGS $DP_USER@$DP_HOST "$1"
 }
 
 # Default settings
@@ -67,7 +66,7 @@ EOF
     do
       cmd="$cmd; echo \"$value\" > $DP_BASE_DIR/.envdir/$key"
     done
-    echo $cmd
+    runssh "$cmd"
     ;;
   config:unset) runssh "rm -f $DP_BASE_DIR/.envdir/$1"
     ;;
@@ -95,7 +94,6 @@ else
 fi
 EOF
 )
-    echo "$cmd" | runssh "bash"
     runssh "$cmd"
     ;;
   restart)
@@ -108,15 +106,17 @@ EOF
     githash=`git show-ref -s refs/heads/$branch`
     cmds=$(cat <<EOF 
 set -e
-cat - > /tmp/app.tar
+cat > /tmp/app.tar;
 export DIST_DIR=$DP_BASE_DIR/versions/\`date -u +%Y%m%d%H%M\`
 mkdir -p \$DIST_DIR
-tar xf /tmp/app.tar -C \$DIST_DIR
+echo "Extracting app"
+tar xvf /tmp/app.tar -C \$DIST_DIR
 cd \$DIST_DIR
+echo $githash > .gitversion
+echo "Compiling..."
 
 `cat .dp/compile`
 
-echo $githash > \$DIST_DIR/.gitversion
 rm -f \$DIST_DIR/../current
 ln -s \$DIST_DIR \$DIST_DIR/../current
 EOF
