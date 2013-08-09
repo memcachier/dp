@@ -1,5 +1,5 @@
 ## Installation
     
-    $ cp dp /usr/local
+    $ cp dp /usr/local/bin/dp
 
 
