@@ -51,7 +51,7 @@ EOF
   config) runssh "$envs"
     ;;
   config:get)
-    runssh "echo -n \"$1=\"; cat $DP_BASE_DIR/.envdir/$1"
+    runssh "cat $DP_BASE_DIR/.envdir/$1"
     ;;
   config:set)
     IFS="="
