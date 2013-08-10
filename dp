@@ -3,13 +3,13 @@
 set -e
 
 function runssh() {
-  ssh -p $DP_PORT $DP_SSH_ARGS $DP_USER@$DP_HOST "$1"
+  ssh -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST "$1"
 }
 
 # Default settings
-DP_PORT=22
-DP_BASE_DIR="\$HOME/app"
-DP_USER=$USER
+PORT=22
+BASE_DIR="\$HOME/app"
+REMOTE_USER=$REMOTE_USER
 
 if [[ -e '.dp/config' ]]
 then
@@ -27,15 +27,17 @@ else
   shift
 fi
 
-envs="cd $DP_BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
+envs="cd $BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
 
 case "$command" in
+  version) runssh "cat $BASE_DIR/versions/current/.gitversion"
+    ;;
   init-server)
     cmd=$(cat <<EOF
-mkdir -p $DP_BASE_DIR/versions
-mkdir -p $DP_BASE_DIR/.envdir
-touch $DP_BASE_DIR/log
-cat <<EF > $DP_BASE_DIR/run
+mkdir -p $BASE_DIR/versions
+mkdir -p $BASE_DIR/.envdir
+touch $BASE_DIR/log
+cat <<EF > $BASE_DIR/run
 #!/usr/bin/env bash
 cd \\\`dirname \\\$0\\\`/versions/current
 IFS="[: ]"
@@ -43,7 +45,7 @@ read name cmd < Procfile
 echo "Starting \\\$name..."
 exec envdir ../../.envdir \\\$cmd
 EF
-chmod +x $DP_BASE_DIR/run
+chmod +x $BASE_DIR/run
 EOF
 )
     runssh "$cmd"
@@ -51,46 +53,46 @@ EOF
   config) runssh "$envs"
     ;;
   config:get)
-    runssh "cat $DP_BASE_DIR/.envdir/$1"
+    runssh "cat $BASE_DIR/.envdir/$1"
     ;;
   config:set)
     IFS="="
     read key value <<< $1
-    cmd="mkdir -p $DP_BASE_DIR/.envdir && echo \"$value\" > $DP_BASE_DIR/.envdir/$key"
+    cmd="mkdir -p $BASE_DIR/.envdir && echo \"$value\" > $BASE_DIR/.envdir/$key"
     runssh "$cmd"
     ;;
   config:setbulk)
-    cmd="mkdir -p $DP_BASE_DIR/.envdir"
+    cmd="mkdir -p $BASE_DIR/.envdir"
     IFS="="
     while read key value
     do
-      cmd="$cmd; echo \"$value\" > $DP_BASE_DIR/.envdir/$key"
+      cmd="$cmd; echo \"$value\" > $BASE_DIR/.envdir/$key"
     done
     runssh "$cmd"
     ;;
-  config:unset) runssh "rm -f $DP_BASE_DIR/.envdir/$1"
+  config:unset) runssh "rm -f $BASE_DIR/.envdir/$1"
     ;;
-  run) echo "$*" | runssh "cd $DP_BASE_DIR/versions/current && envdir ../../.envdir bash"
+  run) echo "$*" | runssh "cd $BASE_DIR/versions/current && envdir ../../.envdir bash"
     ;;
   logs)
     args="-n 100 $*"
-    runssh "tail $args $DP_BASE_DIR/log"
+    runssh "tail $args $BASE_DIR/log"
     ;;
-  status) runssh "cd $DP_BASE_DIR && svstat ."
+  status) runssh "cd $BASE_DIR && svstat ."
     ;;
   stop)
     echo "Stopping app..."
-    runssh "svc -d $DP_BASE_DIR"
+    runssh "svc -d $BASE_DIR"
     ;;
   start)
     echo "Starting app..."
     cmd=$(cat <<EOF
-svok $DP_BASE_DIR
+svok $BASE_DIR
 if [[ \$? -gt 0 ]]
 then
-  start-stop-daemon --no-close --background -m --pidfile $DP_BASE_DIR/pid --start --startas \`which supervise\` -- $DP_BASE_DIR &>> $DP_BASE_DIR/log
+  start-stop-daemon --no-close --background -m --pidfile $BASE_DIR/pid --start --startas \`which supervise\` -- $BASE_DIR &>> $BASE_DIR/log
 else
-  svc -u $DP_BASE_DIR
+  svc -u $BASE_DIR
 fi
 EOF
 )
@@ -98,7 +100,7 @@ EOF
     ;;
   restart)
     echo "Restarting app..."
-    runssh "svc -d $DP_BASE_DIR && svc -u $DP_BASE_DIR"
+    runssh "svc -d $BASE_DIR && svc -u $BASE_DIR"
     ;;
   deploy)
 
@@ -107,7 +109,7 @@ EOF
     cmds=$(cat <<EOF 
 set -e
 cat > /tmp/app.tar;
-export DIST_DIR=$DP_BASE_DIR/versions/\`date -u +%Y%m%d%H%M\`
+export DIST_DIR=$BASE_DIR/versions/\`date -u +%Y%m%d%H%M\`
 mkdir -p \$DIST_DIR
 echo "Extracting app"
 tar xvf /tmp/app.tar -C \$DIST_DIR
