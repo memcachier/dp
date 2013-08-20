@@ -10,12 +10,14 @@ function runssh() {
 PORT=22
 BASE_DIR="\$HOME/app"
 REMOTE_USER=$REMOTE_USER
+defaultenv="default"
+envdir=${ENV:-$defaultenv}
 
-if [[ -e '.dp/config' ]]
+if [[ -e ".dp/$envdir/config" ]]
 then
-  . .dp/config
+  . ".dp/$envdir/config"
 else
-  echo "No .dp directory found"
+  echo "No .dp/$envdir/ directory found"
   exit 1
 fi
 
