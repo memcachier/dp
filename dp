@@ -9,7 +9,7 @@ function runssh() {
 # Default settings
 PORT=22
 BASE_DIR="\$HOME/app"
-REMOTE_USER=$REMOTE_USER
+REMOTE_USER=${REMOTE_USER:-$(whoami)}
 defaultenv="default"
 envdir=${ENV:-$defaultenv}
 
@@ -125,7 +125,7 @@ rm -f \$DIST_DIR/../current
 ln -s \$DIST_DIR \$DIST_DIR/../current
 EOF
 )
-    git archive $branch | runssh "$cmds"
+    git archive $branch . | runssh "$cmds"
     ;;
 esac
 
