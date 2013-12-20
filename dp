@@ -3,7 +3,7 @@
 set -e
 
 function runssh() {
-  ssh -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST "$1"
+  ssh -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST $2 "$1"
 }
 
 # Default settings
@@ -59,7 +59,7 @@ EOF
     ;;
   config:set)
     IFS="="
-    read key value <<< $1
+    read key value <<< "$1"
     cmd="mkdir -p $BASE_DIR/.envdir && echo \"$value\" > $BASE_DIR/.envdir/$key"
     runssh "$cmd"
     ;;
@@ -74,7 +74,7 @@ EOF
     ;;
   config:unset) runssh "rm -f $BASE_DIR/.envdir/$1"
     ;;
-  run) echo "$*" | runssh "cd $BASE_DIR/versions/current && envdir ../../.envdir bash"
+  run) runssh "cd $BASE_DIR/versions/current && envdir ../../.envdir bash -c \"$*\"" "-t"
     ;;
   logs)
     args="-n 100 $*"
@@ -111,10 +111,11 @@ EOF
     cmds=$(cat <<EOF 
 set -e
 cat > /tmp/app.tar;
+export BASE_DIR=$BASE_DIR
 export DIST_DIR=$BASE_DIR/versions/\`date -u +%Y%m%d%H%M\`
 mkdir -p \$DIST_DIR
 echo "Extracting app"
-tar xvf /tmp/app.tar -C \$DIST_DIR
+tar xf /tmp/app.tar -C \$DIST_DIR
 cd \$DIST_DIR
 echo $githash > .gitversion
 echo "Compiling..."
