@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+DP_VERSION=0.1
 
 set -e
 
@@ -23,7 +24,7 @@ fi
 
 if [[ $# -eq 0 ]]
 then
-  command="push"
+  command="help"
 else
   command=$1
   shift
@@ -32,6 +33,25 @@ fi
 envs="cd $BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
 
 case "$command" in
+  help)
+    cat <<EOF
+MemCachier Daemon Deployment Tool!
+Version $DP_VERSION
+Usage: `basename $0` <command> <args>
+
+Commands are:
+  init-server   Start a new DP install on the remote server.
+  deploy        Deploy the latest version of the managed app.
+  config[:get | :set | :setbulk | :unset]
+  start         Start the app on the remote server.
+  stop          Stop the app on the remote server.
+  restart       Restart the app on the remote server.
+  status        Display running state of the app on the remote server.
+  version       Display version of app deployed on remote server.
+  logs          Display latest log output of app.
+  run           Run a command on the remote server.
+EOF
+    ;;
   version) runssh "cat $BASE_DIR/versions/current/.gitversion"
     ;;
   init-server)
