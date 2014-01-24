@@ -22,20 +22,6 @@ else
   shift
 fi
 
-if [[ -e ".dp/$envdir/config" ]]
-then
-  . ".dp/$envdir/config"
-else
-  if [[ $command != "help" && $command != "init" ]]
-  then
-    echo "No .dp/$envdir/ directory found"
-    echo "Is this a DP managed app?"
-    exit 1
-  fi
-fi
-
-envs="cd $BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
-
 case "$command" in
   help)
     cat <<EOF
@@ -44,20 +30,23 @@ Version $DP_VERSION
 Usage: `basename $0` <command> <args>
 
 Commands are:
-  init          Turn current directory into a DP app.
-  init-server   Start a new DP install on the remote server.
-  deploy        Deploy the latest version of the managed app.
-  config[:get | :set | :setbulk | :unset]
-  start         Start the app on the remote server.
-  stop          Stop the app on the remote server.
-  restart       Restart the app on the remote server.
-  status        Display running state of the app on the remote server.
-  version       Display version of app deployed on remote server.
-  logs          Display latest log output of app.
-  run           Run a command on the remote server.
+  init            Turn current directory into a DP app.
+  init-server     Start a new DP install on the remote server.
+  deploy          Deploy the latest version of the managed app.
+  config          Display app environment.
+  config:get      Display a specific app env variable.
+  config:set      Set a specific app env variable.
+  config:setbulk  Set many app env variables.
+  config:unset    Remove a specific app env variable.
+  start           Start the app on the remote server.
+  stop            Stop the app on the remote server.
+  restart         Restart the app on the remote server.
+  status          Display running state of the app on the remote server.
+  version         Display version of app deployed on remote server.
+  logs            Display latest log output of app.
+  run             Run a command on the remote server.
 EOF
-    ;;
-  version) runssh "cat $BASE_DIR/versions/current/.gitversion"
+exit 0
     ;;
   init)
 if [[ -e ".dp/$envdir/config" ]]
@@ -78,6 +67,36 @@ cp .dp/production/config .dp/staging/config
 cat << EOF > .dp/compile
 # Place compilation commands here
 EOF
+echo "Please edit .dp/*/config files now to setup the remote server"
+exit
+    ;;
+esac
+
+if [[ -e ".dp/$envdir/config" ]]
+then
+  . ".dp/$envdir/config"
+else
+  echo "No .dp/$envdir/ directory found"
+  echo "Is this a DP managed app?"
+  exit 1
+fi
+
+if [[ -z "$REMOTE_USER" ]]
+then
+  echo "REMOTE_USER not set in config file: .dp/$envdir/config"
+  exit 1
+fi
+
+if [[ -z "$REMOTE_HOST" ]]
+then
+  echo "REMOTE_HOST not set in config file: .dp/$envdir/config"
+  exit 1
+fi
+
+envs="cd $BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
+
+case "$command" in
+  version) runssh "cat $BASE_DIR/versions/current/.gitversion"
     ;;
   init-server)
     cmd=$(cat <<EOF
@@ -172,6 +191,10 @@ ln -s \$DIST_DIR \$DIST_DIR/../current
 EOF
 )
     git archive $branch . | runssh "$cmds"
+    ;;
+  *)
+    echo "Unknown command!"
+    exit 1
     ;;
 esac
 
