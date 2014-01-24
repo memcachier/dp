@@ -14,20 +14,24 @@ REMOTE_USER=${REMOTE_USER:-$(whoami)}
 defaultenv="default"
 envdir=${ENV:-$defaultenv}
 
-if [[ -e ".dp/$envdir/config" ]]
-then
-  . ".dp/$envdir/config"
-else
-  echo "No .dp/$envdir/ directory found"
-  exit 1
-fi
-
 if [[ $# -eq 0 ]]
 then
   command="help"
 else
   command=$1
   shift
+fi
+
+if [[ -e ".dp/$envdir/config" ]]
+then
+  . ".dp/$envdir/config"
+else
+  if [[ $command != "help" && $command != "init" ]]
+  then
+    echo "No .dp/$envdir/ directory found"
+    echo "Is this a DP managed app?"
+    exit 1
+  fi
 fi
 
 envs="cd $BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
@@ -40,6 +44,7 @@ Version $DP_VERSION
 Usage: `basename $0` <command> <args>
 
 Commands are:
+  init          Turn current directory into a DP app.
   init-server   Start a new DP install on the remote server.
   deploy        Deploy the latest version of the managed app.
   config[:get | :set | :setbulk | :unset]
@@ -53,6 +58,26 @@ Commands are:
 EOF
     ;;
   version) runssh "cat $BASE_DIR/versions/current/.gitversion"
+    ;;
+  init)
+if [[ -e ".dp/$envdir/config" ]]
+then
+  echo ".dp directory already exists!"
+  echo "This appears to already be a DP app"
+  exit 1
+fi
+mkdir -p .dp/production
+mkdir -p .dp/staging
+ln -s production .dp/default
+cat << EOF > .dp/production/config
+# Please fill in with appropriate host.
+#REMOTE_HOST=...
+#REMOTE_USER=...
+EOF
+cp .dp/production/config .dp/staging/config
+cat << EOF > .dp/compile
+# Place compilation commands here
+EOF
     ;;
   init-server)
     cmd=$(cat <<EOF
