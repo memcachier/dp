@@ -59,9 +59,12 @@ mkdir -p .dp/production
 mkdir -p .dp/staging
 ln -s production .dp/default
 cat << EOF > .dp/production/config
-# Please fill in with appropriate host.
+# Remote host to run your application
 #REMOTE_HOST=...
 #REMOTE_USER=...
+
+# Directory to install your app to (Default: \$HOME)
+#BASE_DIR=...
 EOF
 cp .dp/production/config .dp/staging/config
 cat << EOF > .dp/compile
