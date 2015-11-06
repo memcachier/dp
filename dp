@@ -193,7 +193,18 @@ rm -f \$DIST_DIR/../current
 ln -s \$DIST_DIR \$DIST_DIR/../current
 EOF
 )
-    git archive $branch . | runssh "$cmds"
+
+    # Git archive doesn't support submodules, so we re-implement ourselves.
+    # This works well, but sadly we loose support for the gitattributes
+    # 'export-ignore' attribute.
+    { git ls-files;
+      git submodule foreach --quiet --recursive \
+        'cd $toplevel; cd $name; 
+         git ls-files --with-tree="$sha1" | sed "s#^#$toplevel/$name/#"'
+    } \
+      | sed "s#$(pwd)/##" \
+      | xargs tar -c -f - --no-recursion -- \
+      | runssh "$cmds"
     ;;
   *)
     echo "Unknown command!"
