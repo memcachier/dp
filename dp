@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DP_VERSION=0.1
+DP_VERSION=1.0.0
 
 set -e
 
@@ -23,11 +23,18 @@ else
 fi
 
 case "$command" in
+  --version)
+    echo "DP version ${DP_VERSION}"
+    exit 0
+    ;;
+
+  --help)
+    ;&
   help)
     cat <<EOF
 MemCachier Daemon Deployment Tool!
 Version $DP_VERSION
-Usage: `basename $0` <command> <args>
+Usage: `basename $0` [--version] [--help] <command> <args>
 
 Commands are:
   init            Turn current directory into a DP app.
@@ -46,19 +53,20 @@ Commands are:
   logs            Display latest log output of app.
   run             Run a command on the remote server.
 EOF
-exit 0
+    exit 0
     ;;
+
   init)
-if [[ -e ".dp/$envdir/config" ]]
-then
-  echo ".dp directory already exists!"
-  echo "This appears to already be a DP app"
-  exit 1
-fi
-mkdir -p .dp/production
-mkdir -p .dp/staging
-ln -s production .dp/default
-cat << EOF > .dp/production/config
+    if [[ -e ".dp/$envdir/config" ]]
+    then
+      echo ".dp directory already exists!"
+      echo "This appears to already be a DP app"
+      exit 1
+    fi
+    mkdir -p .dp/production
+    mkdir -p .dp/staging
+    ln -s production .dp/default
+    cat << EOF > .dp/production/config
 # Remote host to run your application
 #REMOTE_HOST=...
 #REMOTE_USER=...
@@ -66,12 +74,12 @@ cat << EOF > .dp/production/config
 # Directory to install your app to (Default: \$HOME)
 #BASE_DIR=...
 EOF
-cp .dp/production/config .dp/staging/config
-cat << EOF > .dp/compile
+  cp .dp/production/config .dp/staging/config
+  cat << EOF > .dp/compile
 # Place compilation commands here
 EOF
-echo "Please edit .dp/*/config files now to setup the remote server"
-exit
+    echo "Please edit .dp/*/config files now to setup the remote server"
+    exit
     ;;
 esac
 
@@ -99,8 +107,10 @@ fi
 envs="cd $BASE_DIR/.envdir && for e in \`ls\`; do echo -n \"\$e=\"; cat \$e; done"
 
 case "$command" in
-  version) runssh "cat $BASE_DIR/versions/current/.gitversion"
+  version)
+    runssh "cat $BASE_DIR/versions/current/.gitversion"
     ;;
+
   init-server)
     cmd=$(cat <<EOF
 mkdir -p $BASE_DIR/versions
@@ -119,17 +129,22 @@ EOF
 )
     runssh "$cmd"
     ;;
-  config) runssh "$envs"
+
+  config)
+    runssh "$envs"
     ;;
+
   config:get)
     runssh "cat $BASE_DIR/.envdir/$1"
     ;;
+
   config:set)
     IFS="="
     read key value <<< "$1"
     cmd="mkdir -p $BASE_DIR/.envdir && echo \"$value\" > $BASE_DIR/.envdir/$key"
     runssh "$cmd"
     ;;
+
   config:setbulk)
     cmd="mkdir -p $BASE_DIR/.envdir"
     IFS="="
@@ -139,20 +154,26 @@ EOF
     done
     runssh "$cmd"
     ;;
+
   config:unset) runssh "rm -f $BASE_DIR/.envdir/$1"
     ;;
+
   run) runssh "cd $BASE_DIR/versions/current && envdir ../../.envdir bash -c \"$*\"" "-t"
     ;;
+
   logs)
     args="-n 100 $*"
     runssh "tail $args $BASE_DIR/log"
     ;;
+
   status) runssh "cd $BASE_DIR && svstat ."
     ;;
+
   stop)
     echo "Stopping app..."
     runssh "svc -d $BASE_DIR"
     ;;
+
   start)
     echo "Starting app..."
     cmd=$(cat <<EOF
@@ -167,12 +188,13 @@ EOF
 )
     runssh "$cmd"
     ;;
+
   restart)
     echo "Restarting app..."
     runssh "svc -d $BASE_DIR && svc -u $BASE_DIR"
     ;;
-  deploy)
 
+  deploy)
     [[ $# -gt 0 ]] && branch=$1 || branch=master
     githash=`git show-ref -s refs/heads/$branch`
     cmds=$(cat <<EOF 
@@ -206,9 +228,11 @@ EOF
       | xargs tar -c -f - --no-recursion -- \
       | runssh "$cmds"
     ;;
+
   *)
     echo "Unknown command!"
     exit 1
     ;;
+
 esac
 

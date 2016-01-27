@@ -5,7 +5,8 @@ tools](http://cr.yp.to/daemontools.html) to give a simple way to
 manage a long-lived process on a remote server.
 
 Think of it like a cheap and cheerful Heroku interface to your server
-for running and deploying simple applications.
+for running and deploying simple applications. It requries that you
+are using git to manage your application.
 
 ## Installation
     
@@ -40,6 +41,38 @@ also setup the environment for the app on the remote server using:
         dp config:set
 
 From there, you are rocking!
+
+### Commands
+
+DP supports the following commands:
+
+        init            Turn current directory into a DP app.
+        init-server     Start a new DP install on the remote server.
+        deploy          Deploy the latest version of the managed app.
+        config          Display app environment.
+        config:get      Display a specific app env variable.
+        config:set      Set a specific app env variable.
+        config:setbulk  Set many app env variables.
+        config:unset    Remove a specific app env variable.
+        start           Start the app on the remote server.
+        stop            Stop the app on the remote server.
+        restart         Restart the app on the remote server.
+        status          Display running state of the app on the remote server.
+        version         Display version of app deployed on remote server.
+        logs            Display latest log output of app.
+        run             Run a command on the remote server.
+
+### Git Required
+
+DP relies on you using git to manage all the required files for your
+application. This is since DP uses git to determine the files that are
+part of your application and package them up to transfer to the remote
+application server.
+
+DP supports using git submodules, however, it does not support the
+`export-ignore` git-attribute to exclude files from deployment. All
+files that are in your git repo will be transfered to the application
+server.
 
 ## Licensing
 
