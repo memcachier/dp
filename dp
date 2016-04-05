@@ -7,30 +7,7 @@ function runssh() {
   ssh -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST $2 "$1"
 }
 
-# Default settings
-PORT=22
-BASE_DIR="\$HOME/app"
-REMOTE_USER=${REMOTE_USER:-$(whoami)}
-defaultenv="default"
-envdir=${ENV:-$defaultenv}
-
-if [[ $# -eq 0 ]]
-then
-  command="help"
-else
-  command=$1
-  shift
-fi
-
-case "$command" in
-  --version)
-    echo "DP version ${DP_VERSION}"
-    exit 0
-    ;;
-
-  --help)
-    ;&
-  help)
+function print_usage() {
     cat <<EOF
 MemCachier Daemon Deployment Tool!
 Version $DP_VERSION
@@ -53,6 +30,36 @@ Commands are:
   logs            Display latest log output of app.
   run             Run a command on the remote server.
 EOF
+}
+
+# Default settings
+PORT=22
+BASE_DIR="\$HOME/app"
+REMOTE_USER=${REMOTE_USER:-$(whoami)}
+defaultenv="default"
+envdir=${ENV:-$defaultenv}
+
+if [[ $# -eq 0 ]]
+then
+  print_usage
+  exit 1
+else
+  command=$1
+  shift
+fi
+
+case "$command" in
+  --version)
+    echo "DP version ${DP_VERSION}"
+    exit 0
+    ;;
+
+  --help)
+    print_usage
+    exit 0
+    ;;
+  help)
+    print_usage
     exit 0
     ;;
 
