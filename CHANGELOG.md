@@ -1,5 +1,9 @@
 # DP Changelog
 
+## Version 1.0.1 -- April 5th, 2016
+
+* Avoid use of bash 4.0 syntax `;&` for switch fallthrough.
+
 ## Version 1.0.0 -- Jan 27th, 2016
 
 * Updated documentation.
