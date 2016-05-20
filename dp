@@ -85,7 +85,9 @@ EOF
   cat << EOF > .dp/compile
 # Place compilation commands here
 EOF
+    touch Procfile
     echo "Please edit .dp/*/config files now to setup the remote server"
+    echo "Please edit Procfile to set your app"
     exit
     ;;
 esac
