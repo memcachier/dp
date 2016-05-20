@@ -26,6 +26,8 @@ Commands are:
   stop            Stop the app on the remote server.
   restart         Restart the app on the remote server.
   status          Display running state of the app on the remote server.
+  auto:on         Allow app to be started automatically.
+  auto:off        Disable automatic starting of app.
   version         Display version of app deployed on remote server.
   logs            Display latest log output of app.
   run             Run a command on the remote server.
@@ -133,10 +135,12 @@ case "$command" in
     ;;
 
   init-server)
+    echo -n "Setting up server... "
     cmd=$(cat <<EOF
 mkdir -p $APP_DIR/versions
 mkdir -p $APP_DIR/.envdir
 mkdir -p $APP_DIR/log
+touch $APP_DIR/down
 cat <<EF > $APP_DIR/run
 #!/usr/bin/env bash
 cd \\\`dirname \\\$0\\\`/versions/current
@@ -155,6 +159,8 @@ chmod +x $APP_DIR/log/run
 EOF
 )
     runssh "$cmd"
+    echo "done"
+    echo "Setup with auto:off, we recommend you use auto:on once deployed"
     ;;
 
   config)
@@ -248,6 +254,18 @@ EOF
   restart)
     echo "Restarting app..."
     runssh "svc -d $APP_DIR && svc -u $APP_DIR"
+    ;;
+
+  auto:on)
+    echo -n "Enabling auto start of app... "
+    runssh "rm -f $APP_DIR/down"
+    echo "done"
+    ;;
+
+  auto:off)
+    echo -n "Disabling auto start of app... "
+    runssh "touch $APP_DIR/down"
+    echo "done"
     ;;
 
   deploy)
