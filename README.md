@@ -8,8 +8,8 @@ Think of it like a cheap and cheerful Heroku interface to your server
 for running and deploying simple applications. It requries that you
 are using git to manage your application.
 
-It also relies on `start-stop-daemon` for launching the daemon tools
-`supervise` process.
+It also relies on the `start-stop-daemon` command for launching the daemon
+tools `svscan` process.
 
 ## Installation
     
