@@ -197,7 +197,7 @@ EOF
 
   logs)
     args="-n 100 $*"
-    runssh "tail $args $APP_DIR/log/main/current"
+    runssh "tail $args $APP_DIR/log/main/current | tai64nlocal"
     ;;
 
   status) runssh "cd $APP_DIR && svstat ."
