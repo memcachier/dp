@@ -1,5 +1,9 @@
 # DP Changelog
 
+## Version 1.1.0 -- May 18th, 2016
+
+* Make use of `multilog` in daemontools to rotate logs.
+
 ## Version 1.0.1 -- April 5th, 2016
 
 * Avoid use of bash 4.0 syntax `;&` for switch fallthrough.
