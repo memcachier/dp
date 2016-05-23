@@ -8,6 +8,9 @@ Think of it like a cheap and cheerful Heroku interface to your server
 for running and deploying simple applications. It requries that you
 are using git to manage your application.
 
+It also relies on the `start-stop-daemon` command for launching the daemon
+tools `svscan` process.
+
 ## Installation
     
     $ cp dp /usr/local/bin/dp
@@ -26,6 +29,11 @@ After that, edit the following files:
   * .dp/compile -- a simple shell script specifying how to compile
     your application to a runnable process. Executed on the remote
     server.
+
+You'll also need to edit `Procfile`, to set the name and way to launch your
+app. For example:
+
+        web: node app.js
 
 Once done, you should be able to type:
 
