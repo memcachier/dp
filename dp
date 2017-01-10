@@ -147,7 +147,7 @@ cd \\\`dirname \\\$0\\\`/versions/current
 IFS="[: ]"
 read name cmd < Procfile
 echo "Starting \\\$name..."
-exec envdir ../../.envdir bash -c \"\\\$cmd\"
+exec envdir ../../.envdir bash -c "\\\$cmd 2>&1"
 EF
 chmod +x $APP_DIR/run
 cat <<EF > $APP_DIR/log/run
