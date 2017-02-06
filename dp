@@ -228,7 +228,6 @@ EOF
     ;;
 
   start)
-    echo -n "Starting app... "
     cmd=$(cat <<EOF
 # check svsan running
 svlaunch=1
@@ -245,16 +244,23 @@ fi
 # svscan not running, lauch
 if [[ \$svlaunch -eq 1 ]]
 then
+  echo -n "Starting svscan... "
   start-stop-daemon --no-close --background -m \
     --pidfile $BASE_DIR/svscan.pid \
     --start --startas \`which svscan\` -- $BASE_DIR \
     > $BASE_DIR/svscan.log
-  echo "launched svscan"
-  sleep 2
-  echo -n "Starting app... "
+  if [[ \$? -gt 0 ]]
+  then
+    echo "failed"
+    exit \$?
+  else
+    echo "done"
+    sleep 2
+  fi
 fi
 
 # check app up
+echo -n "Starting app... "
 svok $APP_DIR
 if [[ \$? -gt 0 ]]
 then
