@@ -16,12 +16,13 @@ Usage: `basename $0` [--version] [--help] <command> <args>
 Commands are:
   init            Turn current directory into a DP app.
   init-server     Start a new DP install on the remote server.
-  deploy          Deploy the latest version of the managed app.
+  envs            Display the configured dp deployment environments.
   config          Display app environment.
   config:get      Display a specific app env variable.
   config:set      Set a specific app env variable.
   config:setbulk  Set many app env variables.
   config:unset    Remove a specific app env variable.
+  deploy          Deploy the latest version of the managed app.
   start           Start the app on the remote server.
   stop            Stop the app on the remote server.
   restart         Restart the app on the remote server.
@@ -67,6 +68,16 @@ case "$command" in
     ;;
   help)
     print_usage
+    exit 0
+    ;;
+
+  envs)
+    if [[ ! -d ".dp" ]]; then
+      echo "No .dp directory exists!"
+      echo "This doesn't appear to be a DP app"
+      exit 1
+    fi
+    ls -1 .dp | grep -v compile | grep -v default
     exit 0
     ;;
 
