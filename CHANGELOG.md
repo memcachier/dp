@@ -1,5 +1,10 @@
 # DP Changelog
 
+## Version 1.2.1 -- February 6th, 2017
+
+* Add `ssh` command.
+* Better error messages when starting an app.
+
 ## Version 1.2.0 -- February 5th, 2017
 
 * Fix bug with handling of stdin/stderr.
