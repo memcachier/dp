@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DP_VERSION=1.1.0
+DP_VERSION=1.2.0
 
 set -e
 
@@ -32,6 +32,13 @@ Commands are:
   version         Display version of app deployed on remote server.
   logs            Display latest log output of app.
   run             Run a command on the remote server.
+
+Controlling environments:
+  To select the deployment environment in use, set the 'ENV' environment
+  variable to the desired deployment target. E.g.,
+
+  $ ENV=staging dp logs
+
 EOF
 }
 

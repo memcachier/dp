@@ -56,16 +56,19 @@ DP supports the following commands:
 
         init            Turn current directory into a DP app.
         init-server     Start a new DP install on the remote server.
-        deploy          Deploy the latest version of the managed app.
+        envs            Display the configured dp deployment environments.
         config          Display app environment.
         config:get      Display a specific app env variable.
         config:set      Set a specific app env variable.
         config:setbulk  Set many app env variables.
         config:unset    Remove a specific app env variable.
+        deploy          Deploy the latest version of the managed app.
         start           Start the app on the remote server.
         stop            Stop the app on the remote server.
         restart         Restart the app on the remote server.
         status          Display running state of the app on the remote server.
+        auto:on         Allow app to be started automatically.
+        auto:off        Disable automatic starting of app.
         version         Display version of app deployed on remote server.
         logs            Display latest log output of app.
         run             Run a command on the remote server.
