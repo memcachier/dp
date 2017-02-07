@@ -72,6 +72,7 @@ DP supports the following commands:
         version         Display version of app deployed on remote server.
         logs            Display latest log output of app.
         run             Run a command on the remote server.
+        ssh             Login to the remote machine using ssh.
 
 ### Git Required
 
