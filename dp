@@ -166,7 +166,7 @@ cd \\\`dirname \\\$0\\\`/versions/current
 IFS="[: ]"
 read name cmd < Procfile
 echo "Starting \\\$name..."
-exec envdir ../../.envdir bash -c "\\\$cmd 2>&1"
+exec envdir ../../.envdir bash -c "exec \\\$cmd 2>&1"
 EF
 chmod +x $APP_DIR/run
 cat <<EF > $APP_DIR/log/run
@@ -296,7 +296,7 @@ EOF
   deploy)
     [[ $# -gt 0 ]] && branch=$1 || branch=master
     githash=`git show-ref -s refs/heads/$branch`
-    cmds=$(cat <<EOF 
+    cmds=$(cat <<EOF
 set -e
 cat > /tmp/app.tar;
 export APP_DIR=$APP_DIR
@@ -320,7 +320,7 @@ EOF
     # 'export-ignore' attribute.
     { git ls-files;
       git submodule foreach --quiet --recursive \
-        'cd $toplevel; cd $name; 
+        'cd $toplevel; cd $name;
          git ls-files --with-tree="$sha1" | sed "s#^#$toplevel/$name/#"'
     } \
       | sed "s#$(pwd)/##" \
@@ -338,4 +338,3 @@ EOF
     ;;
 
 esac
-
