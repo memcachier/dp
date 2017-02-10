@@ -1,5 +1,10 @@
 # DP Changelog
 
+## Version 1.2.2 -- February 6th, 2017
+
+* Fix bug in process management, we track the run script life-time rather than
+  the process it launched.
+
 ## Version 1.2.1 -- February 6th, 2017
 
 * Add `ssh` command.
