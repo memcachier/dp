@@ -30,6 +30,9 @@ Commands are:
   auto:on         Allow app to be started automatically.
   auto:off        Disable automatic starting of app.
   version         Display version of app deployed on remote server.
+  old             Display old deployed versions.
+  old:set         Set old version as current deployed version.
+  old:clean       Remove all old versions but current.
   logs            Display latest log output of app.
   run             Run a command on the remote server.
   ssh             Login to the remote machine using ssh.
@@ -330,6 +333,49 @@ EOF
 
   ssh)
     runssh ""
+    ;;
+
+  old)
+    echo "# Deployed versions of app"
+    curr=$(runssh "stat $APP_DIR/versions/current | grep File | sed -n \"s/.*\/\([^/]*\)/\1/p\" | tr -d \"’'\"")
+    all=$(runssh "ls $APP_DIR/versions/ | grep -v current")
+    for a in $all
+    do
+      if [ "$a" = "$curr" ]
+      then
+        echo "$a (current)"
+      else
+        echo "$a"
+      fi
+    done
+    ;;
+
+  old:set)
+    exists=$(runssh "stat $APP_DIR/versions/$1 &> /dev/null; echo \$?")
+    if [ $exists -eq 0 ]
+    then
+      echo "Setting $1 as current deployed version"
+      runssh "ln -s $APP_DIR/versions/$1 $APP_DIR/versions/current-new && \
+        mv $APP_DIR/versions/current-new $APP_DIR/versions/current"
+    else
+      echo "Chosen version doesn't exist!"
+      exit 1
+    fi
+    ;;
+
+  old:clean)
+    echo "Removing old deployed versions of app..."
+    curr=$(runssh "stat $APP_DIR/versions/current | grep File | sed -n \"s/.*\/\([^/]*\)/\1/p\" | sed \"s/'//\"")
+    all=$(runssh "ls $APP_DIR/versions/ | grep -v current")
+    for a in $all
+    do
+      if [ "$a" != "$curr" ]
+      then
+        runssh "rm -r $APP_DIR/versions/$a"
+        echo "- removed $a"
+      fi
+    done
+    echo "done"
     ;;
 
   *)
