@@ -70,6 +70,9 @@ DP supports the following commands:
         auto:on         Allow app to be started automatically.
         auto:off        Disable automatic starting of app.
         version         Display version of app deployed on remote server.
+        old             Display old deployed versions.
+        old:set         Set old version as current deployed version.
+        old:clean       Remove all old versions but current.
         logs            Display latest log output of app.
         run             Run a command on the remote server.
         ssh             Login to the remote machine using ssh.
