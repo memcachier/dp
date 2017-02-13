@@ -1,5 +1,9 @@
 # DP Changelog
 
+## Version 1.3.0 -- February 11th, 2017
+
+* Add support for `old`, `old:set`, `old:clean` commands.
+
 ## Version 1.2.2 -- February 6th, 2017
 
 * Fix bug in process management, we track the run script life-time rather than
