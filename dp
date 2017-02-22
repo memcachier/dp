@@ -298,7 +298,7 @@ EOF
 
   deploy)
     [[ $# -gt 0 ]] && branch=$1 || branch=master
-    githash=`git show-ref -s refs/heads/$branch`
+    githash=`git show-ref -s --tags --heads $branch`
     cmds=$(cat <<EOF
 set -e
 cat > /tmp/app.tar;
