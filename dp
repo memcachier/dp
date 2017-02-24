@@ -365,7 +365,7 @@ EOF
 
   old:clean)
     echo "Removing old deployed versions of app..."
-    curr=$(runssh "stat $APP_DIR/versions/current | grep File | sed -n \"s/.*\/\([^/]*\)/\1/p\" | sed \"s/'//\"")
+    curr=$(runssh "stat $APP_DIR/versions/current | grep File | sed -n \"s/.*\/\([^/]*\)/\1/p\" | tr -d \"’'\"")
     all=$(runssh "ls $APP_DIR/versions/ | grep -v current")
     for a in $all
     do
