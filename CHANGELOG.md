@@ -1,5 +1,10 @@
 # DP Changelog
 
+## Version 1.3.1 -- February 22nd, 2017
+
+* Fix bug in `old` and `old:clean` commands detecting current deploy.
+* Allow user to deploy a git tag.
+
 ## Version 1.3.0 -- February 11th, 2017
 
 * Add support for `old`, `old:set`, `old:clean` commands.
