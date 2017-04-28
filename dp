@@ -299,6 +299,16 @@ EOF
   deploy)
     [[ $# -gt 0 ]] && branch=$1 || branch=master
     githash=`git show-ref -s --tags --heads $branch`
+    appbase=`pwd`
+    while [ ! -d .git ]; do cd ..; done
+    repobase=`pwd`
+    apprel=`realpath --relative-to $repobase $appbase`
+    if [ $apprel = "." ]
+    then
+        procfilelink=""
+    else
+        procfilelink="ln -s \$DIST_DIR/$apprel/Procfile \$DIST_DIR/Procfile"
+    fi
     cmds=$(cat <<EOF
 set -e
 cat > /tmp/app.tar;
@@ -307,11 +317,12 @@ export DIST_DIR=$APP_DIR/versions/\`date -u +%Y%m%d%H%M\`
 mkdir -p \$DIST_DIR
 echo "Extracting app"
 tar xf /tmp/app.tar -C \$DIST_DIR
-cd \$DIST_DIR
+cd \$DIST_DIR/$apprel
 echo $githash > .gitversion
 echo "Compiling..."
 
-`cat .dp/compile`
+`cat $apprel/.dp/compile`
+$procfilelink
 
 rm -f \$DIST_DIR/../current
 ln -s \$DIST_DIR \$DIST_DIR/../current
