@@ -114,6 +114,9 @@ case "$command" in
 # Log files (can't change after init-server)
 LOG_SIZE=10485760
 LOG_FILES=10
+
+# Deployment style (sub-directory [dir] or git-directory [git])
+#DEPLOY_MODE=dir
 EOF
   cp .dp/production/config .dp/staging/config
   cat << EOF > .dp/compile
@@ -134,6 +137,25 @@ else
   echo "No .dp/$envdir/ directory found"
   echo "Is this a DP managed app?"
   exit 1
+fi
+
+# Figure out deploy mode
+if [[ -z "$DEPLOY_MODE" ]]; then
+  DEPLOY_MODE=DIR
+fi
+
+DEPLOY_MODE=${DEPLOY_MODE^^} # convert to uppercase
+
+if [[ "$command" = "deploy" ]];
+then
+  if [[ "$DEPLOY_MODE" = "GIT" ]]; then
+    command=deploy-git
+  elif [[ "$DEPLOY_MODE" = "DIR" ]]; then
+    command=deploy-dir
+  else
+    echo "Unknown DEPLOY_MODE ($DEPLOY_MODE)!"
+    exit 1
+  fi
 fi
 
 # Sanity check args
@@ -296,7 +318,47 @@ EOF
     echo "done"
     ;;
 
-  deploy)
+  deploy-dir)
+    # deploy method that just copies from directory `.dp` is located in and
+    # down.
+    [[ $# -gt 0 ]] && branch=$1 || branch=master
+    githash=`git show-ref -s --tags --heads $branch`
+    cmds=$(cat <<EOF
+set -e
+cat > /tmp/app.tar;
+export APP_DIR=$APP_DIR
+export DIST_DIR=$APP_DIR/versions/\`date -u +%Y%m%d%H%M\`
+mkdir -p \$DIST_DIR
+echo "Extracting app"
+tar xf /tmp/app.tar -C \$DIST_DIR
+cd \$DIST_DIR
+echo $githash > .gitversion
+echo "Compiling..."
+
+`cat .dp/compile`
+
+rm -f \$DIST_DIR/../current
+ln -s \$DIST_DIR \$DIST_DIR/../current
+EOF
+)
+
+    # Git archive doesn't support submodules, so we re-implement ourselves.
+    # This works well, but sadly we loose support for the gitattributes
+    # 'export-ignore' attribute.
+    { git ls-files;
+      git submodule foreach --quiet --recursive \
+        'cd $toplevel; cd $name;
+         git ls-files --with-tree="$sha1" | sed "s#^#$toplevel/$name/#"'
+    } \
+      | sed "s#$(pwd)/##" \
+      | xargs tar -c -f - --no-recursion -- \
+      | runssh "$cmds"
+    ;;
+
+  deploy-git)
+    # deploy method that just copies across the whole git repo. Useful in a
+    # situation (such as a mono-repo) where a dp managed app has dependencies
+    # located outside the local root (e.g. `../dependency`).
     [[ $# -gt 0 ]] && branch=$1 || branch=master
     githash=`git show-ref -s --tags --heads $branch`
     appbase=`pwd`
@@ -390,7 +452,7 @@ EOF
     ;;
 
   *)
-    echo "Unknown command!"
+    echo "Unknown command! ($command)"
     exit 1
     ;;
 
