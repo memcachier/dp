@@ -1,5 +1,11 @@
 # DP Changelog
 
+## Version 1.4.0 -- April 30th, 2017
+
+* Add new deployment style, `git`, that copies across the whole git repository.
+* Add support for `DEPLOY_MODE` to select between new `git` style and old `dir`
+  style.
+
 ## Version 1.3.1 -- February 22nd, 2017
 
 * Fix bug in `old` and `old:clean` commands detecting current deploy.
