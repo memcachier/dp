@@ -379,8 +379,9 @@ export DIST_DIR=$APP_DIR/versions/\`date -u +%Y%m%d%H%M\`
 mkdir -p \$DIST_DIR
 echo "Extracting app"
 tar xf /tmp/app.tar -C \$DIST_DIR
-cd \$DIST_DIR/$apprel
+cd \$DIST_DIR
 echo $githash > .gitversion
+cd \$DIST_DIR/$apprel
 echo "Compiling..."
 
 `cat $apprel/.dp/compile`
