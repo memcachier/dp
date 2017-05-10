@@ -236,7 +236,7 @@ EOF
   config:unset) runssh "rm -f $APP_DIR/.envdir/$1"
     ;;
 
-  run) runssh "cd $APP_DIR/versions/current && envdir ../../.envdir bash -c \"$*\"" "-t"
+  run) runssh "cd $APP_DIR/versions/current-appbase && envdir $APP_DIR/.envdir bash -c \"$*\"" "-t"
     ;;
 
   logs)
@@ -338,7 +338,9 @@ echo "Compiling..."
 `cat .dp/compile`
 
 rm -f \$DIST_DIR/../current
+rm -f \$DIST_DIR/../current-appbase
 ln -s \$DIST_DIR \$DIST_DIR/../current
+ln -s \$DIST_DIR \$DIST_DIR/../current-appbase
 EOF
 )
 
@@ -388,7 +390,9 @@ echo "Compiling..."
 $procfilelink
 
 rm -f \$DIST_DIR/../current
+rm -f \$DIST_DIR/../current-appbase
 ln -s \$DIST_DIR \$DIST_DIR/../current
+ln -s \$DIST_DIR/$apprel \$DIST_DIR/../current-appbase
 EOF
 )
 
