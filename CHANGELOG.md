@@ -1,5 +1,9 @@
 # DP Changelog
 
+## Version 1.4.1 -- May 10th, 2017
+
+* Fix bug with `dp version` when using git style deploy mode.
+
 ## Version 1.4.0 -- April 30th, 2017
 
 * Add new deployment style, `git`, that copies across the whole git repository.
