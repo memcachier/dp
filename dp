@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DP_VERSION=1.4.0
+DP_VERSION=1.4.1
 
 set -e
 
@@ -236,7 +236,7 @@ EOF
   config:unset) runssh "rm -f $APP_DIR/.envdir/$1"
     ;;
 
-  run) runssh "cd $APP_DIR/versions/current && envdir ../../.envdir bash -c \"$*\"" "-t"
+  run) runssh "cd $APP_DIR/versions/current-appbase && envdir $APP_DIR/.envdir bash -c \"$*\"" "-t"
     ;;
 
   logs)
@@ -338,7 +338,9 @@ echo "Compiling..."
 `cat .dp/compile`
 
 rm -f \$DIST_DIR/../current
+rm -f \$DIST_DIR/../current-appbase
 ln -s \$DIST_DIR \$DIST_DIR/../current
+ln -s \$DIST_DIR \$DIST_DIR/../current-appbase
 EOF
 )
 
@@ -379,15 +381,18 @@ export DIST_DIR=$APP_DIR/versions/\`date -u +%Y%m%d%H%M\`
 mkdir -p \$DIST_DIR
 echo "Extracting app"
 tar xf /tmp/app.tar -C \$DIST_DIR
-cd \$DIST_DIR/$apprel
+cd \$DIST_DIR
 echo $githash > .gitversion
+cd \$DIST_DIR/$apprel
 echo "Compiling..."
 
 `cat $apprel/.dp/compile`
 $procfilelink
 
 rm -f \$DIST_DIR/../current
+rm -f \$DIST_DIR/../current-appbase
 ln -s \$DIST_DIR \$DIST_DIR/../current
+ln -s \$DIST_DIR/$apprel \$DIST_DIR/../current-appbase
 EOF
 )
 
