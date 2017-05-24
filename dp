@@ -156,9 +156,9 @@ then
     echo "Unknown DEPLOY_MODE ($DEPLOY_MODE)!"
     exit 1
   fi
-  echo "I AM GOING TO DEPLOY TO '${ENV}'.  RETYPE THE ENVIRONMENT NAME TO CONFIRM:"
+  echo "I AM GOING TO DEPLOY TO '${envdir}'.  RETYPE THE ENVIRONMENT NAME TO CONFIRM:"
   read check
-  if [[ "$check" != "$ENV" ]]; then
+  if [[ "$check" != "$envdir" ]]; then
       echo EXITING!
       exit 1
   fi
