@@ -156,6 +156,12 @@ then
     echo "Unknown DEPLOY_MODE ($DEPLOY_MODE)!"
     exit 1
   fi
+  echo "I AM GOING TO DEPLOY TO '${ENV}'.  RETYPE THE ENVIRONMENT NAME TO CONFIRM:"
+  read check
+  if [[ "$check" != "$ENV" ]]; then
+      echo EXITING!
+      exit 1
+  fi
 fi
 
 # Sanity check args
