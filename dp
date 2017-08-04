@@ -7,6 +7,10 @@ function runssh() {
   ssh -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST $2 "$1"
 }
 
+function runscp() {
+  scp -P $PORT $SSH_ARGS "$1" "$REMOTE_USER@$REMOTE_HOST:$2"
+}
+
 function print_usage() {
     cat <<EOF
 MemCachier Daemon Deployment Tool!
@@ -306,25 +310,29 @@ EOF
     repobase=`pwd`
     apprel=`realpath --relative-to $repobase $appbase`
     cd $appbase
-    githash=`git show-ref -s --tags --heads $branch`
     if [ $apprel = "." ]
     then
         procfilelink=""
     else
         procfilelink="ln -s \$DIST_DIR/$apprel/Procfile \$DIST_DIR/Procfile"
     fi
-    reponame=`git config --get remote.origin.url`
+    echo "SETTING UP REPO FOR VERSION: $branch..."
+    githash=`git show-ref -s --tags --heads $branch`
+    timestamp=`date -u +%Y%m%d%H%M`
+    git clone --local $repobase .dp/$timestamp
+    cd .dp/$timestamp
+    git submodule init
+    git -c advice.detachedHead=false checkout --detach $branch
+    git submodule update --recursive
+    cd ..
     cmds=$(cat <<EOF
 set -e
 export APP_DIR=$APP_DIR
-export DIST_DIR=$APP_DIR/versions/\`date -u +%Y%m%d%H%M\`
-echo "CLONING REPO..."
-GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone $reponame \$DIST_DIR
+export DIST_DIR=$APP_DIR/versions/$timestamp
+echo "EXTRACTING APP..."
+tar xzf /tmp/$timestamp.tar.gz -C \$APP_DIR/versions
+/bin/rm /tmp/$timestamp.tar.gz
 cd \$DIST_DIR
-echo "SETTING UP REPO FOR VERSION: $branch..."
-git submodule init
-git -c advice.detachedHead=false checkout --detach $branch
-git submodule update --recursive
 echo $githash > .gitversion
 cd \$DIST_DIR/$apprel
 echo "COMPILING..."
@@ -338,7 +346,12 @@ ln -s \$DIST_DIR/$apprel \$DIST_DIR/../current-appbase
 EOF
 )
 
+    echo "CREATING TARBALL..."
+    tar -cz -f ./$timestamp.tar.gz ./$timestamp
+    echo "UPLOADING TARBALL..."
+    runscp ./$timestamp.tar.gz /tmp
     runssh "$cmds"
+    /bin/rm -fr ./$timestamp ./$timestamp.tar.gz
     ;;
 
   ssh)
