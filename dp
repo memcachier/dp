@@ -4,11 +4,11 @@ DP_VERSION=1.4.1
 set -e
 
 function runssh() {
-  ssh -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST $2 "$1"
+  ssh -o StrictHostKeyChecking=no -p $PORT $SSH_ARGS $REMOTE_USER@$REMOTE_HOST $2 "$1"
 }
 
 function runscp() {
-  scp -P $PORT $SSH_ARGS "$1" "$REMOTE_USER@$REMOTE_HOST:$2"
+  scp -o StrictHostKeyChecking=no -P $PORT $SSH_ARGS "$1" "$REMOTE_USER@$REMOTE_HOST:$2"
 }
 
 function basic_deploy() {
@@ -23,6 +23,7 @@ function basic_deploy() {
     git submodule init
     git -c advice.detachedHead=false checkout $branch
     git submodule update --recursive
+    cd ..
 
     if [ $apprel = "." ]
     then
@@ -338,7 +339,7 @@ EOF
   config:unset) runssh "rm -f $APP_DIR/.envdir/$1"
     ;;
 
-  run) runssh "cd $APP_DIR/versions/current-appbase && envdir $APP_DIR/.envdir bash -c \"$*\"" "-t"
+  run) runssh "if [ -d $APP_DIR/versions/current-appbase ]; then cd $APP_DIR/versions/current-appbase ; else cd $APP_DIR/versions/current ; fi && envdir $APP_DIR/.envdir bash -c \"$*\"" "-t"
     ;;
 
   logs)
