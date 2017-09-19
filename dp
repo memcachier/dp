@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DP_VERSION=1.4.1
+DP_VERSION=1.5.0
 
 set -e
 
