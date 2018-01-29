@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-DP_VERSION=1.5.0
+DP_VERSION=1.6.0
 
 set -e
 
@@ -8,7 +8,7 @@ function runssh() {
 }
 
 function runscp() {
-  scp -o StrictHostKeyChecking=no -P $PORT $SSH_ARGS "$1" "$REMOTE_USER@$REMOTE_HOST:$2"
+  scp -o StrictHostKeyChecking=no -C -P $PORT $SSH_ARGS "$1" "$REMOTE_USER@$REMOTE_HOST:$2"
 }
 
 function basic_deploy() {
@@ -437,7 +437,7 @@ EOF
         exit 1
     fi
     timestamp=`date -u +%Y%m%d%H%M`
-    if [ "$DP_VM_BUILD" == "true" ]
+    if [ "$DP_VM_BUILD" != "false" ]
     then
         vm_deploy $appbase $repobase $apprel $timestamp $githash
     else
